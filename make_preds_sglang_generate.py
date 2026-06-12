@@ -34,7 +34,7 @@ with open(OUT, "w", encoding="utf-8") as f:
             "text": prompt,
             "sampling_params": {
                 "max_new_tokens": 8192,
-                "temperature": 0,
+                "temperature": 0.01,
             },
         }
 
