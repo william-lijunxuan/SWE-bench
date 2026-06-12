@@ -15,20 +15,25 @@ with open(OUT, "w", encoding="utf-8") as f:
     for ex in ds:
         prompt = f"""You are solving a SWE-bench task.
 
-Repository: {ex["repo"]}
-Base commit: {ex["base_commit"]}
-Instance ID: {ex["instance_id"]}
+        Repository: {ex["repo"]}
+        Base commit: {ex["base_commit"]}
+        Instance ID: {ex["instance_id"]}
 
-Issue:
-{ex["problem_statement"]}
+        Issue:
+        {ex["problem_statement"]}
 
-Return ONLY a valid unified git diff patch. Do not include markdown fences.
-"""
+        Output ONLY a valid git unified diff patch.
+        The FIRST line of your response must start with: diff --git
+        Do not explain.
+        Do not use markdown.
+        Do not use code fences.
+        Do not output any text before diff --git.
+        """
 
         payload = {
             "text": prompt,
             "sampling_params": {
-                "max_new_tokens": 2048,
+                "max_new_tokens": 8192,
                 "temperature": 0,
             },
         }
@@ -37,7 +42,15 @@ Return ONLY a valid unified git diff patch. Do not include markdown fences.
         r.raise_for_status()
 
         data = r.json()
-        patch = data.get("text", "").strip()
+        patch = data.get("text", "")
+
+        idx = patch.find("diff --git")
+        if idx >= 0:
+            patch = patch[idx:]
+        else:
+            patch = ""
+
+        patch = patch.strip()
 
         row = {
             "instance_id": ex["instance_id"],
