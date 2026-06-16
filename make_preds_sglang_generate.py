@@ -9,7 +9,7 @@ DATASET_NAME = "princeton-nlp/SWE-bench_Lite"
 CACHE_DIR = "/home/seagl/dataset"
 SPLIT = "test[:1]"
 
-MAX_NEW_TOKENS = 2048
+MAX_NEW_TOKENS = 8192
 
 
 def extract_patch(text: str) -> str:
@@ -24,7 +24,39 @@ def extract_patch(text: str) -> str:
     if start == -1:
         return ""
 
-    return text[start:].strip()
+    patch = text[start:].strip()
+
+    cleaned_lines = []
+    for line in patch.splitlines():
+        if line.startswith("index 1234567..abcdefg"):
+            continue
+        cleaned_lines.append(line)
+
+    return "\n".join(cleaned_lines).strip()
+
+
+def looks_truncated(patch: str) -> bool:
+    if not patch:
+        return True
+
+    last = patch.splitlines()[-1].rstrip()
+
+    bad_endings = (
+        ":",
+        "\\",
+        "(",
+        "[",
+        "{",
+        ",",
+    )
+
+    if last.startswith("@@"):
+        return True
+
+    if last.endswith(bad_endings):
+        return True
+
+    return False
 
 
 def call_sglang(prompt: str) -> str:
@@ -34,13 +66,10 @@ def call_sglang(prompt: str) -> str:
             "max_new_tokens": MAX_NEW_TOKENS,
             "temperature": 0.01,
             "top_p": 1.0,
-            "stop": [
-                "\n\n\n",
-            ],
         },
     }
 
-    r = requests.post(SGLANG_URL, json=payload, timeout=600)
+    r = requests.post(SGLANG_URL, json=payload, timeout=1200)
 
     if r.status_code != 200:
         print("SGLang request failed")
@@ -73,6 +102,7 @@ Rules:
 - Do not include fake examples.
 - Do not invent unrelated helper functions.
 - Keep the patch minimal.
+- The patch must be complete and valid for git apply.
 """
 
 
@@ -97,6 +127,11 @@ def main():
             if not patch:
                 print("WARNING: no valid diff found")
                 print(raw_text[:2000])
+
+            if looks_truncated(patch):
+                print("WARNING: patch may be truncated")
+                print("patch tail:")
+                print("\n".join(patch.splitlines()[-30:]))
 
             row = {
                 "instance_id": ex["instance_id"],
