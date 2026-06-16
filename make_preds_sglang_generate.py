@@ -22,6 +22,9 @@ def extract_patch(text: str) -> str:
 
     start = text.find("diff --git")
     if start == -1:
+        start = text.find("--- a/")
+
+    if start == -1:
         return ""
 
     patch = text[start:].strip()
@@ -32,7 +35,13 @@ def extract_patch(text: str) -> str:
             continue
         cleaned_lines.append(line)
 
-    return "\n".join(cleaned_lines).strip()
+    patch = "\n".join(cleaned_lines).strip()
+
+    if patch.startswith("--- a/"):
+        first_file = patch.splitlines()[0].replace("--- a/", "").strip()
+        patch = f"diff --git a/{first_file} b/{first_file}\n" + patch
+
+    return patch
 
 
 def looks_truncated(patch: str) -> bool:
