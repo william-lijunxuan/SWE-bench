@@ -3,7 +3,8 @@
 ## GPT5.6
 https://openai.com/index/previewing-gpt-5-6-sol/
 
-TerminalBench 2.1
+TerminalBench 2.1  is a collection of benchmarks for measuring agents' abilities to complete valuable and complex tasks in container environments. Tasks include assembling proteins for synthesis, debugging async code, and resolving security vulnerabilities.
+
 ![alt text](image-4.png)
 
 ## GPT5.5
@@ -32,7 +33,7 @@ https://arxiv.org/pdf/2606.19348
 https://qwen.ai/blog?id=qwen3-coder-next
 ![alt text](image-5.png)
 
-Qwen3.6
+## Qwen3.6
 https://huggingface.co/Qwen/Qwen3.6-35B-A3B
 ![alt text](image-7.png)
 ## Qwn3.5 
